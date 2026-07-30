@@ -1,0 +1,524 @@
+-- Script Path: game:GetService("ReplicatedStorage").ClientModules.ClientGui.EnergyPopup
+-- Took 0.03s to decompile.
+-- Executor: Delta (1.1.731.944)
+
+local v1 = game:GetService("ReplicatedStorage")
+local v2 = game:GetService("Players")
+local v_u_3 = game:GetService("RunService")
+local v_u_4 = game:GetService("UserInputService")
+local v5 = game:GetService("ProximityPromptService")
+local v_u_6 = game:GetService("TweenService")
+local v_u_7 = game:GetService("GuiService")
+local v_u_8 = game:GetService("AdService")
+local v9 = require(v1.ClientModules.LocalDataModule)
+local v10 = require(v1.Shared.CurrencyInfo)
+local v_u_11 = require(v1.Shared.SoundModule)
+local v12 = require(v1.Shared.TimeUtil)
+local v_u_13 = require(v1.ClientModules.TutorialSignals)
+local v_u_14 = require(script.Parent)
+local v15 = v2.LocalPlayer
+local v_u_16 = v9.DataReplica
+local v_u_17 = workspace.CurrentCamera
+local v_u_18 = v10.Energy.TankMax
+local v_u_19 = v10.Energy.VIPTankBonus
+local v_u_20 = v10.Energy.GetRefillCost
+local v_u_21 = v15:WaitForChild("PlayerGui"):WaitForChild("HudGui")
+local v_u_22 = v_u_21:WaitForChild("EnergyPopup")
+local v23 = v_u_22:WaitForChild("Content")
+local v_u_24 = v23:WaitForChild("Energy"):WaitForChild("TextLabel")
+local v_u_25 = v23:WaitForChild("Timer")
+local v_u_26 = v23:WaitForChild("Divider")
+local v_u_27 = v23:WaitForChild("BuyButton")
+local v_u_28 = v_u_27:WaitForChild("TextLabel")
+local v_u_29 = v23:WaitForChild("Description")
+local v_u_30 = v_u_22:WaitForChild("Buttons")
+local v_u_31 = v_u_30:WaitForChild("Open")
+local v_u_32 = v_u_31:WaitForChild("Keybind")
+local v_u_33 = v_u_31:WaitForChild("KeybindImage")
+local v_u_34 = v_u_31:WaitForChild("Title")
+local v_u_35 = v_u_22:WaitForChild("UIScale")
+local v_u_36 = v_u_22:WaitForChild("Background")
+local v_u_37 = v_u_22:WaitForChild("AdEnergy")
+local v_u_38 = v_u_37:WaitForChild("BuyButton")
+local v_u_39 = v_u_29.Text
+v_u_22.Visible = false
+v_u_37.Visible = false
+local v_u_40 = nil
+local v_u_41 = nil
+local v_u_42 = nil
+local v_u_43 = false
+local v_u_44 = 0
+local v_u_45 = 0
+local v_u_46 = false
+local v_u_47 = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local v_u_48 = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+v_u_17:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+    -- upvalues: (ref) v_u_46
+    v_u_46 = false
+end)
+local v_u_49 = {
+    ["Open"] = {
+        [Enum.PreferredInput.Gamepad] = Enum.KeyCode.ButtonX,
+        [Enum.PreferredInput.KeyboardAndMouse] = Enum.KeyCode.E
+    }
+}
+local function v_u_51() -- name: updateKeybindDisplay
+    -- upvalues: (copy) v_u_4, (copy) v_u_32, (copy) v_u_33, (copy) v_u_34, (copy) v_u_49
+    local v50 = v_u_4.PreferredInput
+    if v50 == Enum.PreferredInput.Touch then
+        v_u_32.Visible = false
+        v_u_33.Image = "rbxasset://textures/ui/Controls/TouchTapIcon.png"
+        v_u_33.Visible = true
+        v_u_34.Visible = true
+        return
+    elseif v50 == Enum.PreferredInput.Gamepad then
+        v_u_33.Image = v_u_4:GetImageForKeyCode(v_u_49.Open[Enum.PreferredInput.Gamepad])
+        v_u_33.Visible = true
+        v_u_32.Visible = false
+        v_u_34.Visible = true
+    else
+        v_u_32.Text = v_u_4:GetStringForKeyCode(v_u_49.Open[Enum.PreferredInput.KeyboardAndMouse])
+        v_u_32.Visible = true
+        v_u_33.Image = ""
+        v_u_33.Visible = false
+        v_u_34.Visible = true
+    end
+end
+v_u_4:GetPropertyChangedSignal("PreferredInput"):Connect(v_u_51)
+local function v_u_56() -- name: updateEnergyDisplay
+    -- upvalues: (copy) v_u_16, (copy) v_u_18, (copy) v_u_19, (copy) v_u_24, (ref) v_u_43, (copy) v_u_26, (copy) v_u_27, (copy) v_u_29, (copy) v_u_28, (copy) v_u_20, (copy) v_u_25, (copy) v_u_39, (copy) v_u_30
+    local v52 = v_u_16.Data.Plot.EnergyTank.StoredEnergy
+    local v53
+    if v_u_16.Data.ProfileStats.VIP then
+        v53 = v_u_18 + v_u_19
+    else
+        v53 = v_u_18
+    end
+    v_u_24.Text = tostring(v52) .. "/" .. tostring(v53)
+    if v53 <= v52 then
+        v_u_43 = false
+    elseif not v_u_43 and v52 <= 0 then
+        v_u_43 = true
+    end
+    v_u_26.Visible = v_u_43
+    v_u_27.Visible = v_u_43
+    v_u_29.Visible = not v_u_43
+    if v_u_43 then
+        local v54 = v_u_16.Data.Plot.EnergyTank.RefillsToday or 0
+        local v55 = v_u_20
+        v_u_28.Text = tostring(v55(v54))
+    end
+    if v53 <= v52 then
+        v_u_29.Text = "Energy generator is full. Collect now to keep recharging!"
+        v_u_25.Visible = false
+    else
+        v_u_29.Text = v_u_39
+        v_u_25.Visible = true
+    end
+    v_u_30.Visible = v52 >= 1
+end
+local function v60() -- name: updateTimer
+    -- upvalues: (ref) v_u_40, (copy) v_u_16, (copy) v_u_18, (copy) v_u_19, (copy) v_u_25
+    if v_u_40 then
+        local v57 = v_u_16.Data.Plot.EnergyTank.StoredEnergy
+        local v58
+        if v_u_16.Data.ProfileStats.VIP then
+            v58 = v_u_18 + v_u_19
+        else
+            v58 = v_u_18
+        end
+        if v58 <= v57 then
+            v_u_25.Visible = false
+        else
+            local v59 = 6 - os.time() % 60
+            v_u_25.Text = "+1 in " .. tostring(v59) .. "s"
+            v_u_25.Visible = true
+        end
+    else
+        return
+    end
+end
+v12.EverySecond:Connect(v60)
+local v_u_61 = v1.Events:WaitForChild("RewardedAdEnergy")
+task.spawn(function()
+    -- upvalues: (copy) v_u_8, (copy) v_u_38
+    local v62, v63 = pcall(function()
+        -- upvalues: (ref) v_u_8, (ref) v_u_38
+        v_u_8:RegisterAdOpportunityAsync(v_u_38, 466541024979967)
+    end)
+    if not v62 then
+        warn("Failed to register ad opportunity:", v63)
+    end
+end)
+v_u_38.MouseButton1Click:Connect(function()
+    -- upvalues: (copy) v_u_37, (copy) v_u_61
+    v_u_37.Visible = false
+    v_u_61:FireServer()
+end)
+v_u_61.OnClientEvent:Connect(function(_, p64)
+    -- upvalues: (copy) v_u_11, (copy) v_u_37, (copy) v_u_14, (ref) v_u_40, (copy) v_u_8
+    if p64 == Enum.ShowAdResult.ShowCompleted then
+        v_u_11.PlaySound("OrderServed")
+        local v65 = Vector2.new(v_u_37.AbsolutePosition.X + v_u_37.AbsoluteSize.X * 0.5, v_u_37.AbsolutePosition.Y + v_u_37.AbsoluteSize.Y * 0.5)
+        v_u_14.CurrencyCollect.play("Energy", v65, 15)
+    end
+    if p64 == Enum.ShowAdResult.ShowCompleted and v_u_40 then
+        v_u_37.Visible = false
+        task.spawn(function()
+            -- upvalues: (ref) v_u_8, (ref) v_u_40, (ref) v_u_37
+            local v66, v67 = pcall(function()
+                -- upvalues: (ref) v_u_8
+                return v_u_8:GetAdAvailabilityNowAsync(Enum.AdFormat.RewardedVideo)
+            end)
+            if v_u_40 then
+                if v66 and v67.AdAvailabilityResult == Enum.AdAvailabilityResult.IsAvailable then
+                    v_u_37.Visible = true
+                end
+            end
+        end)
+    end
+end)
+local function v_u_86(p68) -- name: showPopup
+    -- upvalues: (ref) v_u_40, (ref) v_u_41, (ref) v_u_43, (copy) v_u_16, (copy) v_u_56, (copy) v_u_18, (copy) v_u_19, (copy) v_u_25, (copy) v_u_51, (copy) v_u_37, (copy) v_u_8, (copy) v_u_35, (copy) v_u_22, (copy) v_u_6, (copy) v_u_47, (copy) v_u_13, (ref) v_u_42, (copy) v_u_3, (copy) v_u_17, (ref) v_u_46, (ref) v_u_44, (copy) v_u_36, (ref) v_u_45, (copy) v_u_31, (copy) v_u_7, (copy) v_u_21
+    v_u_40 = p68
+    local v69 = p68.Parent
+    if v69 then
+        v_u_41 = v69
+    end
+    v_u_43 = v_u_16.Data.Plot.EnergyTank.StoredEnergy <= 0
+    v_u_56()
+    if v_u_40 then
+        local v70 = v_u_16.Data.Plot.EnergyTank.StoredEnergy
+        local v71
+        if v_u_16.Data.ProfileStats.VIP then
+            v71 = v_u_18 + v_u_19
+        else
+            v71 = v_u_18
+        end
+        if v71 <= v70 then
+            v_u_25.Visible = false
+        else
+            local v72 = 60 - os.time() % 60
+            v_u_25.Text = "+1 in " .. tostring(v72) .. "s"
+            v_u_25.Visible = true
+        end
+    end
+    v_u_51()
+    v_u_37.Visible = false
+    task.spawn(function()
+        -- upvalues: (ref) v_u_8, (ref) v_u_40, (ref) v_u_37
+        local v73, v74 = pcall(function()
+            -- upvalues: (ref) v_u_8
+            return v_u_8:GetAdAvailabilityNowAsync(Enum.AdFormat.RewardedVideo)
+        end)
+        if v_u_40 then
+            if v73 and v74.AdAvailabilityResult == Enum.AdAvailabilityResult.IsAvailable then
+                v_u_37.Visible = true
+            end
+        end
+    end)
+    v_u_35.Scale = 0
+    task.spawn(function()
+        -- upvalues: (ref) v_u_22
+        wait()
+        v_u_22.Visible = true
+    end)
+    v_u_6:Create(v_u_35, v_u_47, {
+        ["Scale"] = 1
+    }):Play()
+    v_u_13.Fire("EnergyPopupShown")
+    if v_u_42 then
+        v_u_42:Disconnect()
+    end
+    v_u_42 = v_u_3.PreRender:Connect(function()
+        -- upvalues: (ref) v_u_41, (ref) v_u_17, (ref) v_u_22, (ref) v_u_46, (ref) v_u_35, (ref) v_u_44, (ref) v_u_36, (ref) v_u_45, (ref) v_u_31, (ref) v_u_7, (ref) v_u_21
+        if v_u_41 and v_u_41.Parent then
+            local v75, v76 = v_u_17:WorldToScreenPoint(v_u_41.WorldPosition)
+            if v76 then
+                local v77 = v75.Y
+                local v78 = v_u_22.AbsoluteSize.Y
+                if not v_u_46 and (v78 > 0 and v_u_35.Scale == 1) then
+                    v_u_44 = v_u_36.AbsolutePosition.Y - v_u_22.AbsolutePosition.Y
+                    v_u_45 = v_u_31.AbsolutePosition.Y + v_u_31.AbsoluteSize.Y - v_u_22.AbsolutePosition.Y
+                    v_u_46 = true
+                end
+                if v_u_46 then
+                    local v79 = v_u_7:GetGuiInset().Y
+                    local v80 = v_u_22.AnchorPoint.Y * v78
+                    local v81 = v_u_21:FindFirstChild("TopAligned")
+                    if v81 then
+                        v81 = v81:FindFirstChild("TopButtons")
+                    end
+                    if v81 then
+                        v81 = v81:FindFirstChild("MergeGrid")
+                    end
+                    local v82
+                    if v81 then
+                        v82 = v81.AbsolutePosition.Y + v81.AbsoluteSize.Y
+                    else
+                        v82 = -v79
+                    end
+                    local v83 = v80 - v_u_44 + v82
+                    local v84 = v_u_17.ViewportSize.Y - v79 + v80 - v_u_45
+                    local v85 = v75.Y
+                    v77 = math.clamp(v85, v83, v84)
+                end
+                v_u_22.Position = UDim2.fromOffset(v75.X, v77)
+            end
+        end
+    end)
+end
+local function v_u_88() -- name: hidePopup
+    -- upvalues: (copy) v_u_13, (ref) v_u_40, (ref) v_u_41, (ref) v_u_43, (copy) v_u_37, (ref) v_u_42, (copy) v_u_6, (copy) v_u_35, (copy) v_u_48, (copy) v_u_22
+    v_u_13.Fire("EnergyPopupHidden")
+    v_u_40 = nil
+    v_u_41 = nil
+    v_u_43 = false
+    v_u_37.Visible = false
+    if v_u_42 then
+        v_u_42:Disconnect()
+        v_u_42 = nil
+    end
+    local v87 = v_u_6:Create(v_u_35, v_u_48, {
+        ["Scale"] = 0
+    })
+    v87:Play()
+    v87.Completed:Once(function()
+        -- upvalues: (ref) v_u_40, (ref) v_u_22
+        if not v_u_40 then
+            v_u_22.Visible = false
+        end
+    end)
+end
+local function v89() -- name: triggerCollect
+    -- upvalues: (ref) v_u_40, (copy) v_u_21
+    if v_u_40 then
+        if v_u_21.Enabled then
+            v_u_40:InputHoldBegin()
+            task.delay(0.1, function()
+                -- upvalues: (ref) v_u_40
+                if v_u_40 then
+                    v_u_40:InputHoldEnd()
+                end
+            end)
+        end
+    else
+        return
+    end
+end
+v_u_31.MouseButton1Click:Connect(v89)
+local v_u_90 = v1.Events:WaitForChild("BuyEnergyRefill")
+v_u_27.MouseButton1Click:Connect(function()
+    -- upvalues: (ref) v_u_40, (copy) v_u_16, (copy) v_u_20, (copy) v_u_11, (copy) v_u_14, (copy) v_u_90
+    if v_u_40 then
+        if v_u_20(v_u_16.Data.Plot.EnergyTank.RefillsToday or 0) > (v_u_16.Data.Currencies.Gems or 0) then
+            v_u_11.PlaySound("Error")
+            v_u_14.ErrorMessage.Show("Not enough Gems!", 5)
+            v_u_14.OpenGui("Shop")
+            task.defer(function()
+                -- upvalues: (ref) v_u_14
+                if v_u_14.Shop then
+                    v_u_14.Shop.ScrollToGemPacks()
+                end
+            end)
+        else
+            v_u_90:FireServer()
+        end
+    else
+        return
+    end
+end)
+local v_u_91 = workspace:WaitForChild("PlayerPlots"):WaitForChild("Plot_" .. v15.UserId)
+v5.PromptShown:Connect(function(p92, _)
+    -- upvalues: (copy) v_u_91, (copy) v_u_86
+    local v93 = p92.Parent
+    local v94
+    if v93 and v93:IsA("Attachment") then
+        local v95 = v93.Parent
+        if v95 and v95.Name == "EnergyTank" then
+            v94 = v95.Parent == v_u_91
+        else
+            v94 = false
+        end
+    else
+        v94 = false
+    end
+    if v94 then
+        v_u_86(p92)
+    end
+end)
+v5.PromptHidden:Connect(function(p96)
+    -- upvalues: (ref) v_u_40, (copy) v_u_88
+    if p96 == v_u_40 then
+        v_u_88()
+    end
+end)
+v_u_16:OnSet({ "Plot", "EnergyTank", "StoredEnergy" }, function()
+    -- upvalues: (ref) v_u_40, (copy) v_u_56, (copy) v_u_16, (copy) v_u_18, (copy) v_u_19, (copy) v_u_25
+    if v_u_40 then
+        v_u_56()
+        if not v_u_40 then
+            return
+        end
+        local v97 = v_u_16.Data.Plot.EnergyTank.StoredEnergy
+        local v98
+        if v_u_16.Data.ProfileStats.VIP then
+            v98 = v_u_18 + v_u_19
+        else
+            v98 = v_u_18
+        end
+        if v98 <= v97 then
+            v_u_25.Visible = false
+            return
+        end
+        local v99 = 60 - os.time() % 60
+        v_u_25.Text = "+1 in " .. tostring(v99) .. "s"
+        v_u_25.Visible = true
+    end
+end)
+v_u_16:OnSet({ "Plot", "EnergyTank", "RefillsToday" }, function()
+    -- upvalues: (ref) v_u_40, (copy) v_u_56
+    if v_u_40 then
+        v_u_56()
+    end
+end)
+v_u_16:OnSet({ "ProfileStats", "VIP" }, function()
+    -- upvalues: (ref) v_u_40, (copy) v_u_56, (copy) v_u_16, (copy) v_u_18, (copy) v_u_19, (copy) v_u_25
+    if v_u_40 then
+        v_u_56()
+        if not v_u_40 then
+            return
+        end
+        local v100 = v_u_16.Data.Plot.EnergyTank.StoredEnergy
+        local v101
+        if v_u_16.Data.ProfileStats.VIP then
+            v101 = v_u_18 + v_u_19
+        else
+            v101 = v_u_18
+        end
+        if v101 <= v100 then
+            v_u_25.Visible = false
+            return
+        end
+        local v102 = 60 - os.time() % 60
+        v_u_25.Text = "+1 in " .. tostring(v102) .. "s"
+        v_u_25.Visible = true
+    end
+end)
+return {}
+    v_u_22 = v24:GetPropertyChangedSignal("ViewportSize"):Connect(v_u_21)
+end
+v_u_10.ViewportChanged:Fire(workspace.CurrentCamera)
+v_u_20()
+function v_u_10.OnViewportChanged(p_u_25) -- name: OnViewportChanged
+    -- upvalues: (copy) v_u_10
+    local v26 = v_u_10.ViewportChanged:Connect(p_u_25)
+    task.defer(function()
+        -- upvalues: (copy) p_u_25
+        p_u_25(workspace.CurrentCamera)
+    end)
+    return v26
+end
+v_u_10.Loaded:Connect(function()
+    -- upvalues: (copy) v_u_10, (copy) v_u_2, (copy) v_u_12, (copy) v_u_13, (copy) v_u_14, (copy) v_u_20
+    for v27, v28 in pairs(v_u_10) do
+        if type(v28) == "table" then
+            local v_u_29 = v28.Frame
+            if v_u_29 then
+                local v_u_30 = v28.Open
+                local v_u_31, v_u_32
+                if v28.OpenType then
+                    v_u_31 = nil
+                    v_u_32 = nil
+                else
+                    v_u_31 = v_u_2:Create(v_u_29, v_u_12, {
+                        ["Position"] = UDim2.fromScale(0.5, 0.5)
+                    })
+                    v_u_32 = UDim2.fromScale(0.5, 0.8)
+                end
+                v_u_13[v27] = function()
+                    -- upvalues: (ref) v_u_31, (copy) v_u_29, (ref) v_u_32, (copy) v_u_30
+                    if v_u_31 then
+                        v_u_31:Cancel()
+                        v_u_29.Position = v_u_32
+                        v_u_31:Play()
+                    end
+                    if v_u_30 then
+                        v_u_30()
+                    end
+                end
+                local v_u_33 = v28.Close
+                v_u_14[v27] = function()
+                    -- upvalues: (ref) v_u_31, (copy) v_u_33
+                    if v_u_31 then
+                        v_u_31:Cancel()
+                    end
+                    if v_u_33 then
+                        v_u_33()
+                    end
+                end
+            end
+        end
+    end
+    v_u_20()
+end)
+v4.InputBegan:Connect(function(p34)
+    -- upvalues: (copy) v_u_11, (copy) v_u_14, (copy) v_u_3
+    if p34.KeyCode == Enum.KeyCode.ButtonB then
+        for _, v35 in ipairs(v_u_11) do
+            local v36 = v_u_14[v35]
+            if v36 then
+                v36()
+            end
+        end
+        table.clear(v_u_11)
+        v_u_3:DisableGamepadCursor()
+    end
+end)
+function v_u_10.CloseAllOpenGuis() -- name: CloseAllOpenGuis
+    -- upvalues: (copy) v_u_11, (copy) v_u_14
+    for _, v37 in ipairs(v_u_11) do
+        local v38 = v_u_14[v37]
+        if v38 then
+            v38()
+        end
+    end
+    table.clear(v_u_11)
+end
+function v_u_10.OpenGui(p39) -- name: OpenGui
+    -- upvalues: (copy) v_u_11, (copy) v_u_14, (copy) v_u_13
+    for _, v40 in ipairs(v_u_11) do
+        local v41 = v_u_14[v40]
+        if v41 then
+            v41()
+        end
+    end
+    table.clear(v_u_11)
+    local v42 = v_u_11
+    table.insert(v42, p39)
+    local v43 = v_u_13[p39]
+    if v43 then
+        v43()
+    end
+end
+function v_u_10.CloseGui(p44) -- name: CloseGui
+    -- upvalues: (copy) v_u_14, (copy) v_u_11
+    local v45 = v_u_14[p44]
+    if v45 then
+        v45()
+    end
+    local v46 = table.find(v_u_11, p44)
+    if v46 then
+        table.remove(v_u_11, v46)
+    end
+end
+function v_u_10.ToggleGui(p47) -- name: ToggleGui
+    -- upvalues: (copy) v_u_11, (copy) v_u_10
+    if table.find(v_u_11, p47) then
+        v_u_10.CloseGui(p47)
+    else
+        v_u_10.OpenGui(p47)
+    end
+end
+return v_u_10
+
