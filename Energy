@@ -1,39 +1,424 @@
--- Script Path: game:GetService("ReplicatedStorage").ClientModules.ClientGui.EnergyPopup
--- Took 0.03s to decompile.
+-- Script Path: game:GetService("ReplicatedStorage").ClientModules.ClientGui.CurrencyCollect
+-- Took 0.01s to decompile.
 -- Executor: Delta (1.1.731.944)
 
 local v1 = game:GetService("ReplicatedStorage")
-local v2 = game:GetService("Players")
-local v_u_3 = game:GetService("RunService")
-local v_u_4 = game:GetService("UserInputService")
-local v5 = game:GetService("ProximityPromptService")
-local v_u_6 = game:GetService("TweenService")
-local v_u_7 = game:GetService("GuiService")
-local v_u_8 = game:GetService("AdService")
-local v9 = require(v1.ClientModules.LocalDataModule)
-local v10 = require(v1.Shared.CurrencyInfo)
-local v_u_11 = require(v1.Shared.SoundModule)
-local v12 = require(v1.Shared.TimeUtil)
-local v_u_13 = require(v1.ClientModules.TutorialSignals)
-local v_u_14 = require(script.Parent)
-local v15 = v2.LocalPlayer
-local v_u_16 = v9.DataReplica
-local v_u_17 = workspace.CurrentCamera
-local v_u_18 = v10.Energy.TankMax
-local v_u_19 = v10.Energy.VIPTankBonus
-local v_u_20 = v10.Energy.GetRefillCost
-local v_u_21 = v15:WaitForChild("PlayerGui"):WaitForChild("HudGui")
-local v_u_22 = v_u_21:WaitForChild("EnergyPopup")
-local v23 = v_u_22:WaitForChild("Content")
-local v_u_24 = v23:WaitForChild("Energy"):WaitForChild("TextLabel")
-local v_u_25 = v23:WaitForChild("Timer")
-local v_u_26 = v23:WaitForChild("Divider")
-local v_u_27 = v23:WaitForChild("BuyButton")
-local v_u_28 = v_u_27:WaitForChild("TextLabel")
-local v_u_29 = v23:WaitForChild("Description")
-local v_u_30 = v_u_22:WaitForChild("Buttons")
-local v_u_31 = v_u_30:WaitForChild("Open")
-local v_u_32 = v_u_31:WaitForChild("Keybind")
+local v_u_2 = game:GetService("TweenService")
+local v3 = game:GetService("Players")
+local v_u_4 = require(v1.Shared.CurrencyInfo)
+local v_u_5 = require(v1.ClientModules.ClientGui.CurrencyCounters)
+local v_u_6 = require(v1.ClientModules.UIParticle)
+local v_u_7 = require(v1.Shared.SoundModule)
+local v_u_8 = {
+    ["Coins"] = "Coin",
+    ["Energy"] = "Energy",
+    ["Gems"] = "Gem"
+}
+local v_u_9 = v1:WaitForChild("Particles"):WaitForChild("Stars")
+local v_u_10 = v3.LocalPlayer.PlayerGui:WaitForChild("EffectGui")
+local v_u_11 = TweenInfo.new(0.3, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out)
+local v_u_12 = TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+local v_u_13 = TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+local v_u_14 = TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+local v_u_15 = TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+local v_u_16 = v_u_10:WaitForChild("CurrencyAmountTemplate")
+v_u_16.Parent = nil
+local v_u_17 = {}
+local v_u_18 = {}
+local v19 = {}
+local function v_u_25(p20) -- name: getCounterCenter
+    -- upvalues: (copy) v_u_5
+    local v21 = v_u_5.getCounter(p20)
+    if not v21 then
+        return nil
+    end
+    local v22 = v21:FindFirstChild("Container")
+    if not v22 then
+        return nil
+    end
+    local v23 = v22.AbsolutePosition
+    local v24 = v22.AbsoluteSize
+    return Vector2.new(v23.X + v24.X * 0.5, v23.Y + v24.Y * 0.5)
+end
+local function v_u_32(p_u_26) -- name: bounceCounter
+    -- upvalues: (copy) v_u_5, (copy) v_u_17, (copy) v_u_2, (copy) v_u_13
+    local v27 = v_u_5.getCounter(p_u_26)
+    if v27 then
+        local v28 = v27:FindFirstChild("Container")
+        if v28 then
+            local v29 = v28:FindFirstChildOfClass("UIScale")
+            if v29 then
+                local v30 = v_u_17[p_u_26]
+                if v30 then
+                    v30:Cancel()
+                end
+                v29.Scale = 1.15
+                local v_u_31 = v_u_2:Create(v29, v_u_13, {
+                    ["Scale"] = 1
+                })
+                v_u_17[p_u_26] = v_u_31
+                v_u_31.Completed:Once(function()
+                    -- upvalues: (ref) v_u_17, (copy) p_u_26, (copy) v_u_31
+                    if v_u_17[p_u_26] == v_u_31 then
+                        v_u_17[p_u_26] = nil
+                    end
+                end)
+                v_u_31:Play()
+            end
+        else
+            return
+        end
+    else
+        return
+    end
+end
+local function v_u_38(p33) -- name: emitStars
+    -- upvalues: (copy) v_u_5, (copy) v_u_6, (copy) v_u_9
+    local v34 = v_u_5.getCounter(p33)
+    if v34 then
+        local v35 = v34:FindFirstChild("Container")
+        if v35 then
+            local v36 = v35:FindFirstChild("Icon")
+            if v36 then
+                local v_u_37 = v_u_6.fromEmitter3D(v36, v_u_9, 10)
+                v_u_37.Locked = false
+                v_u_37.EmitterMode = "Point"
+                v_u_37:Emit(4)
+                task.spawn(function()
+                    -- upvalues: (copy) v_u_37
+                    repeat
+                        task.wait(0.5)
+                    until #v_u_37.particles == 0
+                    v_u_37:Destroy()
+                end)
+            end
+        else
+            return
+        end
+    else
+        return
+    end
+end
+local function v_u_44(p39) -- name: bounceGui
+    -- upvalues: (copy) v_u_18, (copy) v_u_2, (copy) v_u_13
+    local v_u_40 = p39:FindFirstChild("Icon") or p39
+    if v_u_40:IsA("GuiObject") then
+        local v41 = v_u_40:FindFirstChildOfClass("UIScale")
+        if not v41 then
+            v41 = Instance.new("UIScale")
+            v41.Parent = v_u_40
+        end
+        local v42 = v_u_18[v_u_40]
+        if v42 then
+            v42:Cancel()
+        end
+        v41.Scale = 1.15
+        local v_u_43 = v_u_2:Create(v41, v_u_13, {
+            ["Scale"] = 1
+        })
+        v_u_18[v_u_40] = v_u_43
+        v_u_43.Completed:Once(function()
+            -- upvalues: (ref) v_u_18, (copy) v_u_40, (copy) v_u_43
+            if v_u_18[v_u_40] == v_u_43 then
+                v_u_18[v_u_40] = nil
+            end
+        end)
+        v_u_43:Play()
+    end
+end
+local function v_u_47(p45) -- name: emitStarsAtGui
+    -- upvalues: (copy) v_u_6, (copy) v_u_9
+    local v_u_46 = v_u_6.fromEmitter3D(p45, v_u_9, 10)
+    v_u_46.Locked = false
+    v_u_46.EmitterMode = "Point"
+    v_u_46:Emit(4)
+    task.spawn(function()
+        -- upvalues: (copy) v_u_46
+        repeat
+            task.wait(0.5)
+        until #v_u_46.particles == 0
+        v_u_46:Destroy()
+    end)
+end
+function v19.play(p_u_48, p49, p50) -- name: play
+    -- upvalues: (copy) v_u_4, (copy) v_u_10, (copy) v_u_2, (copy) v_u_12, (copy) v_u_11, (copy) v_u_8, (copy) v_u_7, (copy) v_u_16, (copy) v_u_14, (copy) v_u_15, (copy) v_u_25, (copy) v_u_5, (copy) v_u_38, (copy) v_u_32
+    local v51 = workspace.CurrentCamera.ViewportSize.Y / 600
+    local v52
+    if p50 and p50 > 0 then
+        local v53 = math.max(p50, 1)
+        local v54 = math.log10(v53) * 3 + 3
+        local v55 = math.floor(v54)
+        v52 = math.clamp(v55, 3, 12)
+    else
+        v52 = 10
+    end
+    local v56 = v_u_4[p_u_48]
+    if v56 then
+        local v_u_57 = 32 * v51
+        local v_u_58 = {}
+        for v59 = 1, v52 do
+            local v60 = Instance.new("ImageLabel")
+            v60.Name = "FlyingCoin"
+            v60.Image = v56.Icon
+            v60.BackgroundTransparency = 1
+            v60.Size = UDim2.fromOffset(v_u_57, v_u_57)
+            v60.AnchorPoint = Vector2.new(0.5, 0.5)
+            v60.Position = UDim2.fromOffset(p49.X, p49.Y)
+            v60.ZIndex = v59 + 10
+            local v61 = Instance.new("UIScale")
+            v61.Scale = 0
+            v61.Parent = v60
+            v60.Parent = v_u_10
+            table.insert(v_u_58, v60)
+            local v62 = math.random(0, 359)
+            local v63 = math.rad(v62)
+            local v64 = (30 + math.random() * 30) * v51
+            local v65 = math.cos(v63) * v64
+            local v66 = math.sin(v63) * v64
+            v_u_2:Create(v61, v_u_12, {
+                ["Scale"] = 1
+            }):Play()
+            v_u_2:Create(v60, v_u_11, {
+                ["Position"] = UDim2.fromOffset(p49.X + v65, p49.Y + v66)
+            }):Play()
+        end
+        local v_u_67 = v_u_8[p_u_48]
+        if v_u_67 then
+            v_u_7.PlaySound(v_u_67 .. "Splash")
+        end
+        if p50 and p50 > 0 then
+            local v_u_68 = v_u_16:Clone()
+            v_u_68.Position = UDim2.fromOffset(p49.X, p49.Y)
+            v_u_68.AnchorPoint = Vector2.new(0.5, 0.5)
+            v_u_68.ZIndex = 100
+            v_u_68.Visible = true
+            local v_u_69 = v_u_68:FindFirstChild("ImageLabel")
+            if v_u_69 then
+                v_u_69.Image = v56.Icon
+            end
+            local v_u_70 = v_u_68:FindFirstChild("TextLabel")
+            if v_u_70 then
+                v_u_70.Text = "+" .. tostring(p50)
+            end
+            local v_u_71
+            if v_u_70 then
+                v_u_71 = v_u_70:FindFirstChildOfClass("UIStroke")
+            else
+                v_u_71 = v_u_70
+            end
+            local v72 = Instance.new("UIScale")
+            v72.Scale = 0
+            v72.Parent = v_u_68
+            v_u_68.Parent = v_u_10
+            v_u_2:Create(v72, v_u_14, {
+                ["Scale"] = 1
+            }):Play()
+            task.spawn(function()
+                -- upvalues: (copy) v_u_69, (ref) v_u_2, (ref) v_u_15, (copy) v_u_71, (copy) v_u_70, (copy) v_u_68
+                task.wait(0.8)
+                if v_u_69 then
+                    v_u_2:Create(v_u_69, v_u_15, {
+                        ["ImageTransparency"] = 1
+                    }):Play()
+                end
+                if v_u_71 then
+                    v_u_2:Create(v_u_71, v_u_15, {
+                        ["Transparency"] = 1
+                    }):Play()
+                end
+                if v_u_70 then
+                    local v73 = v_u_2:Create(v_u_70, v_u_15, {
+                        ["TextTransparency"] = 1
+                    })
+                    v73.Completed:Once(function()
+                        -- upvalues: (ref) v_u_68
+                        v_u_68:Destroy()
+                    end)
+                    v73:Play()
+                else
+                    task.wait(v_u_15.Time)
+                    v_u_68:Destroy()
+                end
+            end)
+        end
+        task.spawn(function()
+            -- upvalues: (ref) v_u_25, (copy) p_u_48, (copy) v_u_58, (ref) v_u_5, (ref) v_u_2, (copy) v_u_57, (copy) v_u_67, (ref) v_u_7, (ref) v_u_38, (ref) v_u_32
+            task.wait(0.6)
+            local v_u_74 = v_u_25(p_u_48)
+            if v_u_74 then
+                local v_u_75 = #v_u_58
+                local v_u_76 = false
+                for v77, v_u_78 in ipairs(v_u_58) do
+                    task.delay((v77 - 1) * 0.03, function()
+                        -- upvalues: (ref) v_u_2, (copy) v_u_78, (copy) v_u_74, (ref) v_u_57, (ref) v_u_76, (ref) v_u_5, (ref) p_u_48, (ref) v_u_67, (ref) v_u_7, (ref) v_u_38, (ref) v_u_32, (ref) v_u_75
+                        local v79 = 0.35 + math.random() * 0.25
+                        local v80 = v_u_2:Create(v_u_78, TweenInfo.new(v79, Enum.EasingStyle.Exponential, Enum.EasingDirection.In), {
+                            ["Position"] = UDim2.fromOffset(v_u_74.X, v_u_74.Y),
+                            ["Size"] = UDim2.fromOffset(v_u_57 * 0.5, v_u_57 * 0.5)
+                        })
+                        v80.Completed:Once(function()
+                            -- upvalues: (ref) v_u_78, (ref) v_u_76, (ref) v_u_5, (ref) p_u_48, (ref) v_u_67, (ref) v_u_7, (ref) v_u_38, (ref) v_u_32, (ref) v_u_75
+                            v_u_78:Destroy()
+                            if not v_u_76 then
+                                v_u_76 = true
+                                v_u_5.release(p_u_48)
+                            end
+                            if v_u_67 then
+                                v_u_7.PlaySound(v_u_67 .. "Effect")
+                            end
+                            v_u_38(p_u_48)
+                            v_u_32(p_u_48)
+                            v_u_75 = v_u_75 - 1
+                        end)
+                        v80:Play()
+                    end)
+                end
+            else
+                for _, v81 in ipairs(v_u_58) do
+                    v81:Destroy()
+                end
+                v_u_5.release(p_u_48)
+            end
+        end)
+    end
+end
+function v19.playToGui(p82, p_u_83, p84, p85, p_u_86) -- name: playToGui
+    -- upvalues: (copy) v_u_10, (copy) v_u_2, (copy) v_u_12, (copy) v_u_11, (copy) v_u_16, (copy) v_u_14, (copy) v_u_15, (copy) v_u_47, (copy) v_u_44
+    if p_u_83 then
+        local v87 = workspace.CurrentCamera.ViewportSize.Y / 600
+        local v88
+        if p85 and p85 > 0 then
+            local v89 = math.max(p85, 1)
+            local v90 = math.log10(v89) * 3 + 3
+            local v91 = math.floor(v90)
+            v88 = math.clamp(v91, 3, 12)
+        else
+            v88 = 10
+        end
+        local v_u_92 = 32 * v87
+        local v_u_93 = {}
+        for v94 = 1, v88 do
+            local v95 = Instance.new("ImageLabel")
+            v95.Name = "FlyingToken"
+            v95.Image = p82
+            v95.BackgroundTransparency = 1
+            v95.Size = UDim2.fromOffset(v_u_92, v_u_92)
+            v95.AnchorPoint = Vector2.new(0.5, 0.5)
+            v95.Position = UDim2.fromOffset(p84.X, p84.Y)
+            v95.ZIndex = v94 + 10
+            local v96 = Instance.new("UIScale")
+            v96.Scale = 0
+            v96.Parent = v95
+            v95.Parent = v_u_10
+            table.insert(v_u_93, v95)
+            local v97 = math.random(0, 359)
+            local v98 = math.rad(v97)
+            local v99 = (30 + math.random() * 30) * v87
+            local v100 = math.cos(v98) * v99
+            local v101 = math.sin(v98) * v99
+            v_u_2:Create(v96, v_u_12, {
+                ["Scale"] = 1
+            }):Play()
+            v_u_2:Create(v95, v_u_11, {
+                ["Position"] = UDim2.fromOffset(p84.X + v100, p84.Y + v101)
+            }):Play()
+        end
+        if p85 and p85 > 0 then
+            local v_u_102 = v_u_16:Clone()
+            v_u_102.Position = UDim2.fromOffset(p84.X, p84.Y)
+            v_u_102.AnchorPoint = Vector2.new(0.5, 0.5)
+            v_u_102.ZIndex = 100
+            v_u_102.Visible = true
+            local v_u_103 = v_u_102:FindFirstChild("ImageLabel")
+            if v_u_103 then
+                v_u_103.Image = p82
+            end
+            local v_u_104 = v_u_102:FindFirstChild("TextLabel")
+            if v_u_104 then
+                v_u_104.Text = "+" .. tostring(p85)
+            end
+            local v_u_105
+            if v_u_104 then
+                v_u_105 = v_u_104:FindFirstChildOfClass("UIStroke")
+            else
+                v_u_105 = v_u_104
+            end
+            local v106 = Instance.new("UIScale")
+            v106.Scale = 0
+            v106.Parent = v_u_102
+            v_u_102.Parent = v_u_10
+            v_u_2:Create(v106, v_u_14, {
+                ["Scale"] = 1
+            }):Play()
+            task.spawn(function()
+                -- upvalues: (copy) v_u_103, (ref) v_u_2, (ref) v_u_15, (copy) v_u_105, (copy) v_u_104, (copy) v_u_102
+                task.wait(0.8)
+                if v_u_103 then
+                    v_u_2:Create(v_u_103, v_u_15, {
+                        ["ImageTransparency"] = 1
+                    }):Play()
+                end
+                if v_u_105 then
+                    v_u_2:Create(v_u_105, v_u_15, {
+                        ["Transparency"] = 1
+                    }):Play()
+                end
+                if v_u_104 then
+                    local v107 = v_u_2:Create(v_u_104, v_u_15, {
+                        ["TextTransparency"] = 1
+                    })
+                    v107.Completed:Once(function()
+                        -- upvalues: (ref) v_u_102
+                        v_u_102:Destroy()
+                    end)
+                    v107:Play()
+                else
+                    task.wait(v_u_15.Time)
+                    v_u_102:Destroy()
+                end
+            end)
+        end
+        task.spawn(function()
+            -- upvalues: (copy) p_u_83, (copy) v_u_93, (ref) v_u_2, (copy) v_u_92, (copy) p_u_86, (ref) v_u_47, (ref) v_u_44
+            task.wait(0.6)
+            if p_u_83.Parent then
+                local v108 = p_u_83
+                local v109 = v108.AbsolutePosition
+                local v110 = v108.AbsoluteSize
+                local v_u_111 = Vector2.new(v109.X + v110.X * 0.5, v109.Y + v110.Y * 0.5)
+                local v_u_112 = false
+                for v113, v_u_114 in ipairs(v_u_93) do
+                    task.delay((v113 - 1) * 0.03, function()
+                        -- upvalues: (ref) v_u_2, (copy) v_u_114, (copy) v_u_111, (ref) v_u_92, (ref) v_u_112, (ref) p_u_86, (ref) v_u_47, (ref) p_u_83, (ref) v_u_44
+                        local v115 = 0.35 + math.random() * 0.25
+                        local v116 = v_u_2:Create(v_u_114, TweenInfo.new(v115, Enum.EasingStyle.Exponential, Enum.EasingDirection.In), {
+                            ["Position"] = UDim2.fromOffset(v_u_111.X, v_u_111.Y),
+                            ["Size"] = UDim2.fromOffset(v_u_92 * 0.5, v_u_92 * 0.5)
+                        })
+                        v116.Completed:Once(function()
+                            -- upvalues: (ref) v_u_114, (ref) v_u_112, (ref) p_u_86, (ref) v_u_47, (ref) p_u_83, (ref) v_u_44
+                            v_u_114:Destroy()
+                            if not v_u_112 then
+                                v_u_112 = true
+                                if p_u_86 then
+                                    p_u_86()
+                                end
+                            end
+                            v_u_47(p_u_83)
+                            v_u_44(p_u_83)
+                        end)
+                        v116:Play()
+                    end)
+                end
+            else
+                for _, v117 in ipairs(v_u_93) do
+                    v117:Destroy()
+                end
+            end
+        end)
+    end
+end
+return v19
 local v_u_33 = v_u_31:WaitForChild("KeybindImage")
 local v_u_34 = v_u_31:WaitForChild("Title")
 local v_u_35 = v_u_22:WaitForChild("UIScale")
