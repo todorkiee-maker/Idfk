@@ -583,7 +583,7 @@ local function v_u_86(p68) -- name: showPopup
         if v71 <= v70 then
             v_u_25.Visible = false
         else
-            local v72 = 60 - os.time() % 60
+            local v72 = 6 - os.time() % 60
             v_u_25.Text = "+1 in " .. tostring(v72) .. "s"
             v_u_25.Visible = true
         end
@@ -756,7 +756,7 @@ v_u_16:OnSet({ "Plot", "EnergyTank", "StoredEnergy" }, function()
             v_u_25.Visible = false
             return
         end
-        local v99 = 60 - os.time() % 60
+        local v99 = 6 - os.time() % 60
         v_u_25.Text = "+1 in " .. tostring(v99) .. "s"
         v_u_25.Visible = true
     end
@@ -785,7 +785,7 @@ v_u_16:OnSet({ "ProfileStats", "VIP" }, function()
             v_u_25.Visible = false
             return
         end
-        local v102 = 60 - os.time() % 60
+        local v102 = 6 - os.time() % 60
         v_u_25.Text = "+1 in " .. tostring(v102) .. "s"
         v_u_25.Visible = true
     end
